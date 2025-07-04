@@ -1,11 +1,10 @@
 streamlit
 pandas
-openpyxl
+numpy
 plotly
 seaborn
 scikit-learn
-XlsxWriter
-matplotlib	
+st-aggrid==0.3.4
 dash
-st-aggrid
+
 
