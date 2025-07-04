@@ -5,6 +5,7 @@ plotly
 seaborn
 scikit-learn
 st-aggrid==0.3.4
+st_aggrid
 dash
 
 
