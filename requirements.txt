@@ -4,3 +4,6 @@ openpyxl
 plotly
 seaborn
 scikit-learn
+XlsxWriter
+matplotlib	
+
