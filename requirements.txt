@@ -7,4 +7,5 @@ scikit-learn
 XlsxWriter
 matplotlib	
 dash
+st-aggrid
 
