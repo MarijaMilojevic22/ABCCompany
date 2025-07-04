@@ -77,7 +77,8 @@ df_for_impute = pd.concat([
     df[cols_to_impute].reset_index(drop=True),
     pd.DataFrame(df_cat_encoded, columns=cat_cols)
 ], axis=1)
-df[cols_to_impute] = df[cols_to_impute].replace(0, pd.NA).astype("float")
+df_for_impute = df_for_impute.replace({pd.NA: np.nan})
+df_for_impute = df_for_impute.infer_objects(copy=False)
 
 # Create and apply KNN imputer
 imputer = KNNImputer(n_neighbors=3)
