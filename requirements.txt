@@ -5,5 +5,7 @@ plotly
 seaborn
 scikit-learn
 dash
+openpyxl
+xlsxwriter
 
 
