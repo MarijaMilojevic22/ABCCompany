@@ -64,7 +64,7 @@ cols_to_impute = [
     'Forecast past due backlog',
     'Forecast backlog total'
 ]
-df[cols_to_impute] = df[cols_to_impute].replace(0, pd.NA)
+df[cols_to_impute] = df[cols_to_impute].mask(df[cols_to_impute] == 0, pd.NA)
 
 # Encode categorical columns into numerical format
 cat_cols = ['Month_Name', 'Partnership type']
