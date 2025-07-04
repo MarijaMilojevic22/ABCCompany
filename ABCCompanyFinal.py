@@ -10,7 +10,6 @@ import seaborn as sns
 from sklearn.impute import KNNImputer
 from dash import html, dcc
 from sklearn.preprocessing import OrdinalEncoder
-from st_aggrid import AgGrid
 
 
 st.markdown(
