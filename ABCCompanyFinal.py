@@ -7,7 +7,6 @@ import plotly.express as px
 # from statsmodels.tsa.arima.model import ARIMA
 # from sklearn.metrics import mean_absolute_error, mean_squared_error
 import seaborn as sns
-from sklearn.impute import KNNImputer
 #from dash import html, dcc
 from sklearn.preprocessing import OrdinalEncoder
 #from st_aggrid import AgGrid
@@ -56,39 +55,6 @@ df['actual_mtd'] = df.groupby('BPC')['Actual past due backlog'].diff()
 # The first value in the group will be NaN (since there is no previous value), so we replace it with the original value
 mask = df['actual_mtd'].isna()
 df.loc[mask, 'actual_mtd'] = df.loc[mask, 'Actual past due backlog']
-
-
-cols_to_impute = [
-    'Actual past due backlog',
-    'Actual backlog Total',
-    'Budget past due backlog',
-    'Budget backlog total',
-    'Forecast past due backlog',
-    'Forecast backlog total'
-]
-df[cols_to_impute] = df[cols_to_impute].replace(0, pd.NA)
-
-# Encode categorical columns into numerical format
-cat_cols = ['Month_Name', 'Partnership type']
-encoder = OrdinalEncoder()
-df_cat_encoded = df[cat_cols].copy()
-df_cat_encoded = encoder.fit_transform(df_cat_encoded)
-
-# Create DataDrame for imputation
-df_for_impute = pd.concat([
-    df[cols_to_impute].reset_index(drop=True),
-    pd.DataFrame(df_cat_encoded, columns=cat_cols)
-], axis=1)
-df_for_impute = df_for_impute.replace({pd.NA: np.nan}).infer_objects()
-
-# Create and apply KNN imputer
-imputer = KNNImputer(n_neighbors=3)
-imputed_array = imputer.fit_transform(df_for_impute)
-
-df_imputed = df.copy()
-df_imputed[cols_to_impute] = imputed_array[:, :len(cols_to_impute)]
-
-df = df_imputed.copy()
 
 
 df_2023 = df[df['Year'] == 2023].copy()
