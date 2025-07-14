@@ -4,18 +4,15 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
-# from statsmodels.tsa.arima.model import ARIMA
-# from sklearn.metrics import mean_absolute_error, mean_squared_error
 import seaborn as sns
-#from dash import html, dcc
-from sklearn.preprocessing import OrdinalEncoder
-#from st_aggrid import AgGrid
+from dash import html, dcc
 
 
 st.markdown(
     "<h1 style='text-align: left; font-size: 30px;'>ABC Company – Backlog Performance Dashboard</h1>",
     unsafe_allow_html=True
 )
+
 # Load data
 df = pd.read_excel('Database test.xlsx', sheet_name='Data')
 mapping = pd.read_excel('Database test.xlsx', sheet_name='mapping')
@@ -23,7 +20,17 @@ mapping = pd.read_excel('Database test.xlsx', sheet_name='mapping')
 # Cleaning data
 df = df.dropna()
 df = df.drop_duplicates()
-df = df[df['code'].astype(str) != '0']
+# df = df[df['code'].astype(str) != '0']
+# df['code'] = df['code'].apply(lambda x: '000' if x == 0 else x)
+
+
+df['code'] = df['code'].apply(lambda x: '000' if x == 0 else str(
+    int(x)) if x.is_integer() else str(x))
+df['BPC_CODE'] = df['BPC'].astype(str) + df['code']
+
+df_merged = pd.merge(df, mapping, on='BPC_CODE', how='left')
+df_merged = df_merged
+df = df_merged.drop(df_merged.columns[[11, 12, 13, 14]], axis=1)
 
 
 # Transform data
@@ -47,10 +54,11 @@ df['Month_Name'] = df['Date'].dt.month_name()
 
 
 # Sort by BPC and Date
-df = df.sort_values(by=['BPC', 'Date'])
+df = df.sort_values(by=['Date', 'BPC', 'code', 'Partnership type'])
 
 # Calculate MTD as the difference between the current and previous YTD values per BPC
-df['actual_mtd'] = df.groupby('BPC')['Actual past due backlog'].diff()
+df['actual_mtd'] = df.groupby(['BPC', 'code', 'Partnership type'])[
+    'Actual past due backlog'].diff()
 
 # The first value in the group will be NaN (since there is no previous value), so we replace it with the original value
 mask = df['actual_mtd'].isna()
@@ -170,6 +178,8 @@ fig.update_layout(
 
 st.plotly_chart(fig, use_container_width=True)
 
+#
+
 bu_df = mapping[mapping['CLASS'] == 'BU'].copy()
 site_df = mapping[mapping['CLASS'] == 'SITES'].copy()
 
@@ -278,22 +288,17 @@ fig.update_layout(
 
 st.plotly_chart(fig, use_container_width=True)
 
-# mapping=pd.read_excel('Database test.xlsx', sheet_name='mapping')
 
-df_mapping = mapping[['BPC_CODE',
-                      'PRODUCT GROUP', 'Region_Group', 'SITE_NAME']]
-
-df['BPC_CODE'] = df['BPC'].astype(str) + df['code'].astype(str).str.zfill(4)
-df_new = pd.merge(df, df_mapping, on='BPC_CODE', how='left')
-
-df_new = df_new[df_new['PRODUCT GROUP'].notna()]
-num_rows_with_nan = df_new.isna().any(axis=1).sum()
+df = df[df['PRODUCT GROUP'].notna()]
+# num_rows_with_nan = df_new.isna().any(axis=1).sum()
 # st.write(f"Number of rows with at least one NaN: {num_rows_with_nan}")
 # Create a 'Year-Month' column for monthly grouping
-df_new['Year-Month'] = df_new['Date'].dt.to_period('M').astype(str)
+df['Year-Month'] = df['Date'].dt.to_period('M').astype(str)
+
+df = df[df['Region_Group'] != 'all']
 
 # Calculate total backlog per month
-total_backlog = df_new.groupby(
+total_backlog = df.groupby(
     'Year-Month')['Actual past due backlog'].sum().reset_index()
 total_backlog = total_backlog.rename(
     columns={'Actual past due backlog': 'Total Past Due Backlog'})
@@ -301,39 +306,43 @@ total_backlog = total_backlog.rename(
 # Sidebar dropdown to select the hierarchy level
 level = st.sidebar.selectbox(
     "Select level for the graph Past Due Backlog % Trend:",
-    ['PRODUCT GROUP', 'Region_Group_y', 'SITE_NAME'],
+    ['PRODUCT GROUP', 'Region_Group', 'SITE_NAME'],
     key='level_selectbox'
 )
 # Group data by selected level and month
-grouped = df_new.groupby(['Year-Month', level]
-                         )['Actual past due backlog'].sum().reset_index()
+grouped = df.groupby(['Year-Month', level]
+                     )['Actual past due backlog'].sum().reset_index()
 
 # Merge with total backlog to calculate percentage share
 merged = grouped.merge(total_backlog, on='Year-Month')
 merged['Past Due Backlog %'] = 100 * \
     merged['Actual past due backlog'] / merged['Total Past Due Backlog']
+merged = merged.groupby(['Year-Month', level]
+                        )['Past Due Backlog %'].sum().reset_index()
+
 
 # Map for nicer titles in the chart
 title_map = {
     'PRODUCT GROUP': 'Product Group',
-    'Region_Group_y': 'Business Unit (Region)',
+    'Region_Group': 'Business Unit (Region)',
     'SITE_NAME': 'Site'
 }
 
 
 title = f"Past Due Backlog % Trend by {title_map[level]}"
 
-fig = px.area(
+fig = px.bar(
     merged,
     x='Year-Month',
     y='Past Due Backlog %',
     color=level,
-    title=title,
+    title=f"Past Due Backlog % Trend by {title_map[level]}",
     labels={
         'Year-Month': 'Month',
         'Past Due Backlog %': 'Past Due Backlog (%)',
         level: title_map[level]
-    }
+    },
+    barmode='stack'
 )
 
 fig.update_layout(
@@ -342,15 +351,42 @@ fig.update_layout(
     height=500
 )
 
+# fig.update_traces(
+#   hovertemplate=f"{title_map[level]}<br>" +
+#                 "Date: %{x}<br>" +
+#                "Past Due Backlog: %{y:.1f}%"
+# )
+
+fig.for_each_trace(lambda t: t.update(
+    hovertemplate='<b>Product Group : ' + t.name + '</b><br>' +
+                  'Date: %{x}<br>' +
+                  'Past Due Backlog: %{y:.1f}%'
+))
+
+fig.update_layout(
+    barmode='stack',
+    title=title,
+    xaxis_title='Date',
+    yaxis_title='Past Due Backlog (%)',
+    xaxis_tickangle=-45,
+    hovermode='x unified',
+    height=500
+)
+
+fig.update_traces(name="", selector=dict(type='bar'))
+
 # Display the chart in Streamlit
 st.plotly_chart(fig, use_container_width=True)
 
+st.dataframe(merged.head())
+
+
 st.write("Preview of df_new DataFrame:")
-st.dataframe(df_new.head(20))
+st.dataframe(df.head(20))
 
 output = io.BytesIO()
 with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-    df_new.to_excel(writer, index=False, sheet_name='Sheet1')
+    df.to_excel(writer, index=False, sheet_name='Sheet1')
 output.seek(0)
 
 st.download_button(
@@ -372,7 +408,7 @@ st.download_button(
 #   file_name="df_new_data.xlsx",
 #  mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 # )
-site_impact = df_new.groupby('SITE_NAME')[
+site_impact = df.groupby('SITE_NAME')[
     'Actual past due backlog'].sum().reset_index()
 
 # Sort and choose
