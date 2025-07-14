@@ -8,8 +8,9 @@ import plotly.express as px
 # from sklearn.metrics import mean_absolute_error, mean_squared_error
 import seaborn as sns
 from sklearn.impute import KNNImputer
-# from dash import html, dcc
+from dash import html, dcc
 from sklearn.preprocessing import OrdinalEncoder
+from st_aggrid import AgGrid
 
 
 st.markdown(
@@ -22,7 +23,6 @@ mapping = pd.read_excel('Database test.xlsx', sheet_name='mapping')
 
 # Cleaning data
 df = df.dropna()
-#df = df.drop_duplicates()
 df = df[df['code'].astype(str) != '0']
 
 
@@ -65,7 +65,7 @@ cols_to_impute = [
     'Forecast past due backlog',
     'Forecast backlog total'
 ]
-df[cols_to_impute] = df[cols_to_impute].mask(df[cols_to_impute] == 0, pd.NA)
+df[cols_to_impute] = df[cols_to_impute].replace(0, pd.NA)
 
 # Encode categorical columns into numerical format
 cat_cols = ['Month_Name', 'Partnership type']
@@ -78,7 +78,7 @@ df_for_impute = pd.concat([
     df[cols_to_impute].reset_index(drop=True),
     pd.DataFrame(df_cat_encoded, columns=cat_cols)
 ], axis=1)
-df_for_impute = df_for_impute.mask(df_for_impute.isna(), np.nan)
+df_for_impute = df_for_impute.replace({pd.NA: np.nan}).infer_objects()
 
 # Create and apply KNN imputer
 imputer = KNNImputer(n_neighbors=3)
