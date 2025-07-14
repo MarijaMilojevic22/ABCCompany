@@ -23,7 +23,7 @@ mapping = pd.read_excel('Database test.xlsx', sheet_name='mapping')
 
 # Cleaning data
 df = df.dropna()
-df=df.drop_duplicates()
+df = df.drop_duplicates()
 df = df[df['code'].astype(str) != '0']
 
 
