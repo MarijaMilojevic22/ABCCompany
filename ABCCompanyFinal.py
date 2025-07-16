@@ -378,8 +378,6 @@ fig.update_traces(name="", selector=dict(type='bar'))
 # Display the chart in Streamlit
 st.plotly_chart(fig, use_container_width=True)
 
-st.dataframe(merged.head())
-
 
 st.write("Preview of df_new DataFrame:")
 st.dataframe(df.head(20))
