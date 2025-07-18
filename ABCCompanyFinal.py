@@ -220,6 +220,7 @@ top3['Backlog (formatted)'] = top3['Actual past due backlog'].apply(
 
 top3_table = top3[['Region_Group', 'Backlog (formatted)']]
 top3_table.columns = ['3 Worst Product Type', 'Past Due Backlog']
+top3_table.reset_index(drop=True, inplace=True)
 st.write("3 Worst Product Types ( Highest Past Due Backlog):")
 st.dataframe(top3_table)
 
