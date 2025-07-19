@@ -441,8 +441,8 @@ top3_sites['Backlog (formatted)'] = top3_sites['Actual past due backlog'].apply(
     lambda x: f"${x / 1e9:.1f} billion"
 )
 
-top3_sites_table = top3_sites[['SITE_NAME', 'Backlog (formatted)']]
-top3_sites_table.columns = ['3 Worst Sites', 'Past Due Backlog']
+top3_sites_table = top3_sites[['SITE_NAME', 'Backlog (formatted)','Region_Group']]
+top3_sites_table.columns = ['3 Worst Sites', 'Past Due Backlog','Business unit']
 top3_sites_table.index = range(1, len(top3_table) + 1)
 
 
@@ -472,8 +472,8 @@ bottom3_sites['Backlog (formatted)'] = bottom3_sites['Actual past due backlog'].
     lambda x: f"${x / 1e9:.1f} billion"
 )
 
-bottom3_sites_table = bottom3_sites[['SITE_NAME', 'Backlog (formatted)']]
-bottom3_sites_table.columns = ['3 Best Sites', 'Past Due Backlog']
+bottom3_sites_table = bottom3_sites[['SITE_NAME', 'Backlog (formatted)','Region_Group']]
+bottom3_sites_table.columns = ['3 Best Sites', 'Past Due Backlog', 'Business unit']
 bottom3_sites_table.index = range(1, len(top3_table) + 1)
 st.write("3 Best Sites (Lowest Past Due Backlog):")
 st.dataframe(bottom3_sites_table)
