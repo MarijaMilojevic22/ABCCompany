@@ -439,7 +439,9 @@ top3_sites = top_sites.head(3).copy()
 
 top3_sites['Backlog (formatted)'] = top3_sites['Actual past due backlog'].apply(
     lambda x: f"${x / 1e9:.1f} billion"
-)
+) 
+
+top3_sites=top3_sites.merge(mapping, on='SITE_NAME', how='left')
 
 top3_sites_table = top3_sites[['SITE_NAME', 'Backlog (formatted)','Region_Group']]
 top3_sites_table.columns = ['3 Worst Sites', 'Past Due Backlog','Business unit']
@@ -471,6 +473,8 @@ bottom3_sites = top_sites.tail(3).copy()
 bottom3_sites['Backlog (formatted)'] = bottom3_sites['Actual past due backlog'].apply(
     lambda x: f"${x / 1e9:.1f} billion"
 )
+
+bottom3_sites=bottom3_sites.merge(mapping, on='SITE_NAME', how='left')
 
 bottom3_sites_table = bottom3_sites[['SITE_NAME', 'Backlog (formatted)','Region_Group']]
 bottom3_sites_table.columns = ['3 Best Sites', 'Past Due Backlog', 'Business unit']
