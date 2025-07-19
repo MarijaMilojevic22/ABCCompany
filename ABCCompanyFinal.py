@@ -1,4 +1,4 @@
-import io
+nimport io
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -211,7 +211,7 @@ fig = px.bar(
     }
 )
 st.plotly_chart(fig, use_container_width=True)
-
+ 
 top3 = filtered_backlog.head(3).copy()
 
 top3['Backlog (formatted)'] = top3['Actual past due backlog'].apply(
@@ -408,7 +408,7 @@ st.download_button(
 #  mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 # )
 site_impact = df.groupby('SITE_NAME')[
-    'Actual past due backlog'].sum().reset_index()
+    'Actual past due backlog'].mean().reset_index()
 
 # Sort and choose
 top_sites = site_impact.sort_values(
