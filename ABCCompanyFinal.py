@@ -408,7 +408,7 @@ st.download_button(
 #  mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 # )
 site_impact = df.groupby('SITE_NAME')[
-    'Actual past due backlog'].mean().reset_index()
+    'Actual past due backlog'].sum().reset_index()
 
 # Sort and choose
 top_sites = site_impact.sort_values(
