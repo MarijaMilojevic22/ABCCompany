@@ -374,7 +374,6 @@ fig.update_layout(
     height=500
 )
 
-fig.update_traces(name="", selector=dict(type='bar'))
 
 # Display the chart in Streamlit
 st.plotly_chart(fig, use_container_width=True)
